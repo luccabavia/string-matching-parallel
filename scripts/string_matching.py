@@ -35,19 +35,6 @@ def compare_results(a, b):
     else : 
         print ("The lists are not identical") 
 
-
-# def collect_result_callback(result):
-#     """
-#     Callback for asynchronous parallel execution.
-
-#     Parameters:
-#     -----------
-#     result: `int`
-#         List of results from async parallel execution.
-#     """
-#     global results
-#     results.append(result)
-
 class StringMatching():
     """
     String matching algorithms.
@@ -86,7 +73,6 @@ class StringMatching():
                 j += 1
 
             if (j == M): 
-                # print("Pattern found at index ", i)
                 matches.append(i)
         return matches
 
@@ -109,8 +95,7 @@ class StringMatching():
 
         pat = pattern
         txt = text
-        
-        
+            
         M = len(pat) 
         N = len(txt) 
     
@@ -232,7 +217,6 @@ class ParallelStringMatching(StringMatching):
         matches = super().naive_algorithm(pattern, text)
         return self.result_shifting(matches, segment[0])
         
-
 class ParallelPreprocessing():
     """
     Preprocessing steps, preparing input to parallel workflow.

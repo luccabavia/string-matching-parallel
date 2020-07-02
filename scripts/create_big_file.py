@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from string_matching import load_text
 import argparse
 import os
@@ -48,7 +50,8 @@ def create_large_file(input_file, replications):
 
     if os.path.exists(output):
         print(f"File {output} already exists!")
-        sys.exit(0)
+        #sys.exit(0)
+        return
 
 
     with open(os.path.join("./sample_txts", output_file), "w+") as output:
