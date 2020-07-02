@@ -26,70 +26,121 @@ def get_core_increment(max_core_count):
     print(core_count)
     return core_count
     
-def log_data(dataframe, result):
-    pass
-def create_dataframe():
-    pass
+def log_data(file, result):
 
-def execute_algorithm(pattern, text, 
-                            max_cores=mp.cpu_count(), naive=True, repeat=10):
-    
+    with open(file, "a+") as f:
+        f.write("\n")
+        f.write(result)
+
+def execute_algorithm(pattern, text, log_file,
+            max_cores=mp.cpu_count(), naive=True, exec_async=False, repeat=10):
+    print(len(text))
     sequentialSM = sm()
     parallelSM = psm()
     
     core_count_list = get_core_increment(max_cores)
     result_data = []
-    if naive:
-        
-        for cores in core_count_list:
-            print(f"\nStarting tests with {cores} cores")
-            sliced_text, segments = pp.get_text_segments(text, cores)
 
-            with mp.Pool(cores) as pool:
-                for iteration in range(repeat): 
-                    start = time.time()
-                    results_pool = pool.starmap(
-                        parallelSM.naive_algorithm, 
-                        [(pattern, x, y) for x, y in zip(sliced_text, segments)]
-                    )
-                    end = time.time()
-
-                    results = list()
-                    for i in results_pool:
-                        results = results + i
-                    result_data.append((cores, end - start, len(results)))
-                    # print("Naive parallel synced elapsed: ", end - start)
-                time.sleep(1)
-        print(result_data)
+    if exec_async:
+        if naive:
             
+            for cores in core_count_list:
+                print(f"\nStarting tests with {cores} cores")
+                sliced_text, segments = pp.get_text_segments(text, cores)
 
+                with mp.Pool(cores) as pool:
+                    for iteration in range(repeat): 
+                        start = time.time()
+                        results_pool = pool.starmap_async(
+                            parallelSM.naive_algorithm, 
+                            [(pattern, x, y) for x, y in zip(sliced_text, segments)]
+                        )
+                        end = time.time()
+
+                        results = list()
+                        for i in results_pool.get():
+                            results = results + i
+                        result_data.append((cores, end - start, len(results)))
+                        # print("Naive parallel synced elapsed: ", end - start)
+                    time.sleep(1)
+            print(result_data)
+            log_data(log_file, result_data)
+
+        else:
+            lps = sequentialSM.build_lps(pattern)
+
+            for cores in core_count_list:
+                print(f"Starting tests with {cores} core(s)")
+                sliced_text, segments = pp.get_text_segments(text, cores)
+
+                with mp.Pool(cores) as pool:
+                    for iteration in range(repeat):
+                        print(f"    Iteration {iteration}") 
+                        start = time.time()
+                        results_pool = pool.starmap_async(
+                            parallelSM.kmp_algorithm, 
+                            [(pattern, x, y) for x, y in zip(sliced_text, segments)]
+                        )
+                        end = time.time()
+
+                        results = list()
+                        for i in results_pool.get():
+                            results = results + i
+                        result_data.append((cores, end - start, len(results)))
+                        # print("Naive parallel synced elapsed: ", end - start)
+                    time.sleep(1)
+            print(result_data)
+            log_data(log_file, result_data)
     else:
-        lps = sequentialSM.build_lps(pattern)
+        if naive:
+            
+            for cores in core_count_list:
+                print(f"\nStarting tests with {cores} cores")
+                sliced_text, segments = pp.get_text_segments(text, cores)
 
-        for cores in core_count_list:
-            print(f"Starting tests with {cores} core(s)")
-            sliced_text, segments = pp.get_text_segments(text, cores)
+                with mp.Pool(cores) as pool:
+                    for iteration in range(repeat): 
+                        start = time.time()
+                        results_pool = pool.starmap(
+                            parallelSM.naive_algorithm, 
+                            [(pattern, x, y) for x, y in zip(sliced_text, segments)]
+                        )
+                        end = time.time()
 
-            with mp.Pool(cores) as pool:
-                for iteration in range(repeat):
-                    print(f"    Iteration {iteration}") 
-                    start = time.time()
-                    results_pool = pool.starmap(
-                        parallelSM.kmp_algorithm, 
-                        [(pattern, x, y) for x, y in zip(sliced_text, segments)]
-                    )
-                    end = time.time()
+                        results = list()
+                        for i in results_pool:
+                            results = results + i
+                        result_data.append((cores, end - start, len(results)))
+                        # print("Naive parallel synced elapsed: ", end - start)
+                    time.sleep(1)
+            print(result_data)
+            log_data(log_file, result_data)
 
-                    results = list()
-                    for i in results_pool:
-                        results = results + i
-                    result_data.append((cores, end - start, len(results)))
-                    # print("Naive parallel synced elapsed: ", end - start)
-                time.sleep(1)
-        print(result_data)
+        else:
+            lps = sequentialSM.build_lps(pattern)
 
-    
-    return result_data
+            for cores in core_count_list:
+                print(f"Starting tests with {cores} core(s)")
+                sliced_text, segments = pp.get_text_segments(text, cores)
+
+                with mp.Pool(cores) as pool:
+                    for iteration in range(repeat):
+                        print(f"    Iteration {iteration}") 
+                        start = time.time()
+                        results_pool = pool.starmap(
+                            parallelSM.kmp_algorithm, 
+                            [(pattern, x, y) for x, y in zip(sliced_text, segments)]
+                        )
+                        end = time.time()
+
+                        results = list()
+                        for i in results_pool:
+                            results = results + i
+                        result_data.append((cores, end - start, len(results)))
+                        # print("Naive parallel synced elapsed: ", end - start)
+                    time.sleep(1)
+            print(result_data)
+            log_data(log_file, result_data)
 
 if __name__ == "__main__":
 
@@ -108,15 +159,16 @@ if __name__ == "__main__":
                 "kafka_1750.txt",
                 "kafka_2000.txt"
     ]
-
     # print(get_core_increment(4))
+    log_output_file = "results_log.txt"
+    log_data(log_output_file, "RESULTS LOG FILE")
 
     pat = "people"
     for i in files:
         print(f"Searching in {i} file!")
         current_text = os.path.join(base_path, i)
         loaded_text = load_text(current_text)
-        execute_algorithm(pat, loaded_text, naive=False)
+        execute_algorithm(pat, loaded_text, log_output_file, naive=False)
         del loaded_text
         time.sleep(2)
 
