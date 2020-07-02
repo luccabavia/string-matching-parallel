@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
     for i in range(250, 2001, 250):
         #print(f"Creating file with {i} times the size of base sample text!")
-        create_large_file("../kafka.txt", i)
+        create_large_file("sample_txts/kafka.txt", i)
     
     # Incremets the file size in aproximately 200MB
     base_path = "sample_txts/"
