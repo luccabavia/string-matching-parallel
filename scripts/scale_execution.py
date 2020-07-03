@@ -30,7 +30,8 @@ def log_data(file, result):
 
     with open(file, "a+") as f:
         f.write("\n")
-        f.write(result)
+        for i in result:
+            f.write(str(i)+"\n")
 
 def execute_algorithm(pattern, text, log_file,
             max_cores=mp.cpu_count(), naive=True, exec_async=False, repeat=10):
@@ -40,7 +41,7 @@ def execute_algorithm(pattern, text, log_file,
     
     core_count_list = get_core_increment(max_cores)
     result_data = []
-
+    # core_count_list=[4]
     if exec_async:
         if naive:
             
@@ -81,13 +82,14 @@ def execute_algorithm(pattern, text, log_file,
                             parallelSM.kmp_algorithm, 
                             [(pattern, x, y) for x, y in zip(sliced_text, segments)]
                         )
+                        results_pool = results_pool.get()
                         end = time.time()
 
                         results = list()
-                        for i in results_pool.get():
+                        for i in results_pool:
                             results = results + i
                         result_data.append((cores, end - start, len(results)))
-                        # print("Naive parallel synced elapsed: ", end - start)
+                        print("KMP parallel async elapsed: ", end - start)
                     time.sleep(1)
             print(result_data)
             log_data(log_file, result_data)
@@ -168,7 +170,7 @@ if __name__ == "__main__":
         print(f"Searching in {i} file!")
         current_text = os.path.join(base_path, i)
         loaded_text = load_text(current_text)
-        execute_algorithm(pat, loaded_text, log_output_file, naive=False)
+        execute_algorithm(pat, loaded_text, log_output_file, naive=False, exec_async=True)
         del loaded_text
         time.sleep(2)
 
