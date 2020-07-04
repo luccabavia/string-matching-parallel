@@ -45,12 +45,11 @@ def create_large_file(input_file, replications):
     file_name, file_extension = os.path.splitext(os.path.split(input_file)[1])
     if not os.path.exists("./sample_txts"):
         os.makedirs("./sample_txts")
-    output_file = f"{file_name}_{replications}.txt"
+    output_file = "{0}_{1}.txt".format(file_name, replications)
     output = os.path.join("./sample_txts", output_file)
 
     if os.path.exists(output):
-        print(f"File {output} already exists!")
-        #sys.exit(0)
+        print("File {0} already exists!".format(output))
         return
 
 
@@ -61,7 +60,7 @@ def create_large_file(input_file, replications):
         for i in range(replications):
             output.writelines(input_lines)
     
-    print("File {output} created!")
+        print("File {0} created!".format(output))
 
 if __name__ == "__main__":
 
