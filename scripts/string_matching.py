@@ -25,15 +25,25 @@ def load_text(path, lowercase=True):
     
     return "".join(char_array)
 
-def compare_results(a, b):
+def compare_results(list_a, list_b):
+    """
+    Compare two lists.
 
-    if (len(a)== len(b) and 
-        len(a) == sum(
-                        [1 for i, j in zip(a, b) if i == j])
+    Parameters:
+    -----------
+    list_a: `list``
+        First list.
+    list_b: `list`
+        Second list
+    """
+
+    if (len(list_a)== len(list_b) and 
+        len(list_a) == sum(
+                        [1 for i, j in zip(list_a, list_b) if i == j])
     ): 
-        print ("The lists are identical") 
+        print ("Lists are dentical") 
     else : 
-        print ("The lists are not identical") 
+        print ("Lists are not identical") 
 
 class StringMatching():
     """
@@ -61,12 +71,10 @@ class StringMatching():
         N = len(text)
         matches = list() 
 
-        # A loop to slide pat[] one by one */ 
         for i in range(N - M + 1): 
+        
             j = 0
-            
-            # For current index i, check 
-            # for pattern match */ 
+
             while(j < M): 
                 if (text[i + j] != pattern[j]): 
                     break
@@ -92,34 +100,25 @@ class StringMatching():
         matches: `int`
             List of indices where mathces where found.
         """
-
-        pat = pattern
-        txt = text
             
-        M = len(pat) 
-        N = len(txt) 
+        M = len(pattern) 
+        N = len(text) 
     
-        # create lps[] that will hold the longest prefix suffix  
-        # values for pattern 
-        lps = [0]*M 
-        j = 0 # index for pat[] 
+        j = 0 
             
         matches = list()
-        i = 0 # index for txt[] 
+        i = 0 
         while i < N: 
-            if pat[j] == txt[i]: 
+            if pattern[j] == text[i]: 
                 i += 1
                 j += 1
     
             if j == M: 
-                #print("Found pattern at index ", str(i-j))
                 matches.append(i-j)
                 j = lps[j-1] 
-    
-            # mismatch after j matches 
-            elif i < N and pat[j] != txt[i]: 
-                # Do not match lps[0..lps[j-1]] characters, 
-                # they will match anyway 
+
+            elif i < N and pattern[j] != text[i]: 
+
                 if j != 0: 
                     j = lps[j-1] 
                 else: 
@@ -144,27 +143,22 @@ class StringMatching():
         """
 
 
-        length = 0 # length of the previous longest prefix suffix
+        length = 0 
         M = len(pattern) 
 
         lps = [0]*M
-        lps[0] # lps[0] is always 0 
+        lps[0] 
         i = 1
 
-        # the loop calculates lps[i] for i = 1 to M-1 
         while i < M: 
             if pattern[i] == pattern[length]: 
                 length += 1
                 lps[i] = length
                 i += 1
             else: 
-                # This is tricky. Consider the example. 
-                # AAACAAAA and i = 7. The idea is similar  
-                # to search step. 
+
                 if length != 0: 
                     length = lps[length-1] 
-
-                    # Also, note that we do not increment i here 
                 else: 
                     lps[i] = 0
                     i += 1
@@ -216,6 +210,26 @@ class ParallelStringMatching(StringMatching):
 
         matches = super().naive_algorithm(pattern, text)
         return self.result_shifting(matches, segment[0])
+
+    def kmp_algorithm(self, pattern, text, segment, lps):
+        """
+        Parallel adapted naive algorithm for string searching.
+
+        Parameters:
+        -----------
+        pattern: `str`
+            Pattern to search for.
+        text: `str`
+            Text to search in.
+
+        Returns:
+        --------
+        matches: `int`
+            List of indices where mathces where found.
+        """
+
+        matches = super().kmp_algorithm(pattern, text, lps)
+        return self.result_shifting(matches, segment[0])
         
 class ParallelPreprocessing():
     """
@@ -241,7 +255,6 @@ class ParallelPreprocessing():
             Array of with segment sizes
         """
         
-        # processor_count = 3#jb.cpu_count()
         t_lenght = len(text)
         seg_size = int(t_lenght/processors)
         
